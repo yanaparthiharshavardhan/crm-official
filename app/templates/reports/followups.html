@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Follow-Up Activities Report{% endblock %}
+{% block header_title %}Reports & Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="fw-bold mb-0">Follow-Up Execution Report</h4>
+            <p class="text-muted small mb-0">Analysis of planned, completed, missed, and overdue client follow-ups</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('reports.followups_report', status=status, export='csv') }}" class="btn btn-outline-success btn-sm">
+                <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+            </a>
+            <a href="{{ url_for('reports.hub') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Hub
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Summary Grid -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-md-3">
+            <div class="card p-3 shadow-sm border-0">
+                <div class="text-muted small fw-semibold text-uppercase">Planned / Upcoming</div>
+                <h3 class="fw-bold my-1 text-primary">{{ planned }}</h3>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card p-3 shadow-sm border-0">
+                <div class="text-muted small fw-semibold text-uppercase">Overdue Activities</div>
+                <h3 class="fw-bold my-1 text-danger">{{ overdue }}</h3>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card p-3 shadow-sm border-0">
+                <div class="text-muted small fw-semibold text-uppercase">Completed</div>
+                <h3 class="fw-bold my-1 text-success">{{ completed }}</h3>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card p-3 shadow-sm border-0">
+                <div class="text-muted small fw-semibold text-uppercase">Missed / Cancelled</div>
+                <h3 class="fw-bold my-1 text-secondary">{{ missed }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Type</th>
+                        <th>Scheduled Date</th>
+                        <th>Status</th>
+                        <th>Overdue?</th>
+                        <th>Related Entity</th>
+                        <th>Assigned Rep</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in followups %}
+                        <tr>
+                            <td class="fw-semibold">{{ f.subject }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ f.followup_type }}</span></td>
+                            <td>{{ f.followup_date.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                <span class="badge {% if f.status == 'Completed' %}bg-success{% elif f.is_overdue %}bg-danger{% else %}bg-primary{% endif %}">
+                                    {{ f.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if f.is_overdue %}<span class="badge bg-danger">Yes</span>{% else %}<span class="badge bg-light text-secondary border">No</span>{% endif %}
+                            </td>
+                            <td class="small">{{ f.related_entity_display }}</td>
+                            <td>{{ f.assigned_to.name if f.assigned_to else 'Unassigned' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

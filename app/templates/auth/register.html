@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+
+{% block auth_content %}
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <h4 class="card-title fw-bold text-center mb-1">Create Account</h4>
+        <p class="text-muted text-center small mb-4">Join AcxiomCRM as a Sales Executive</p>
+
+        <form method="POST" action="{{ url_for('auth.register') }}" class="needs-validation" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                <label for="name" class="form-label fw-semibold small">Full Name</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fa-solid fa-user text-secondary"></i></span>
+                    {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="John Doe", required=True) }}
+                </div>
+                {% if form.name.errors %}
+                    <div class="invalid-feedback d-block">{{ form.name.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label fw-semibold small">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fa-solid fa-envelope text-secondary"></i></span>
+                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="john@company.com", required=True) }}
+                </div>
+                {% if form.email.errors %}
+                    <div class="invalid-feedback d-block">{{ form.email.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label fw-semibold small">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-secondary"></i></span>
+                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Min 8 chars with uppercase, number & symbol", required=True) }}
+                </div>
+                <div class="form-text text-muted" style="font-size: 0.75rem;">Must be ≥8 characters, uppercase, lowercase, number & special char.</div>
+                {% if form.password.errors %}
+                    <div class="invalid-feedback d-block">{{ form.password.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label for="confirm_password" class="form-label fw-semibold small">Confirm Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fa-solid fa-shield-check text-secondary"></i></span>
+                    {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""), placeholder="Re-enter password", required=True) }}
+                </div>
+                {% if form.confirm_password.errors %}
+                    <div class="invalid-feedback d-block">{{ form.confirm_password.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">
+                <i class="fa-solid fa-user-plus me-2"></i> Register Account
+            </button>
+        </form>
+
+        <div class="mt-4 pt-3 border-top text-center">
+            <p class="small text-muted mb-0">Already registered? <a href="{{ url_for('auth.login') }}" class="text-primary text-decoration-none fw-semibold">Sign In here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

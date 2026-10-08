@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}User Activity & Performance{% endblock %}
+{% block header_title %}Reports & Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">Sales Team Activity & Performance Report</h4>
+            <p class="text-muted small mb-0">Portfolio distribution, closed revenue, logged touchpoints and follow-up completion by representative</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('reports.user_activity_report', export='csv') }}" class="btn btn-outline-success btn-sm">
+                <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+            </a>
+            <a href="{{ url_for('reports.hub') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Hub
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Sales Executive</th>
+                        <th>Role</th>
+                        <th>Customers Managed</th>
+                        <th>Leads Assigned</th>
+                        <th>Total Deals</th>
+                        <th>Won Deals</th>
+                        <th>Completed Follow-Ups</th>
+                        <th>Logged Activities</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in user_stats %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-dark">{{ s['user'].name }}</div>
+                                <div class="small text-muted">{{ s['user'].email }}</div>
+                            </td>
+                            <td>
+                                <span class="badge {% if s['user'].is_admin %}badge-role-admin{% elif s['user'].is_manager %}badge-role-manager{% else %}badge-role-sales{% endif %}">
+                                    {{ s['user'].role }}
+                                </span>
+                            </td>
+                            <td class="fw-semibold">{{ s['customers'] }}</td>
+                            <td class="fw-semibold">{{ s['leads'] }}</td>
+                            <td class="fw-semibold">{{ s['opportunities'] }}</td>
+                            <td class="fw-bold text-success">{{ s['won_deals'] }}</td>
+                            <td><span class="badge bg-success-subtle text-success">{{ s['completed_followups'] }}</span></td>
+                            <td><span class="badge bg-light text-dark border">{{ s['logged_activities'] }}</span></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Sales Opportunities{% endblock %}
+{% block header_title %}Opportunity Pipeline{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header & Action Button -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="fw-bold mb-0">Opportunities</h4>
+            <p class="text-muted small mb-0">Track pipeline deals, revenue forecasts, probability, and deal progression</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('opportunities.list_opportunities', view='pipeline') }}" class="btn btn-outline-primary btn-sm shadow-sm">
+                <i class="fa-solid fa-table-columns me-1"></i> Kanban View
+            </a>
+            <a href="{{ url_for('opportunities.create') }}" class="btn btn-primary shadow-sm">
+                <i class="fa-solid fa-plus me-1"></i> New Opportunity
+            </a>
+        </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-body p-3">
+            <form method="GET" action="{{ url_for('opportunities.list_opportunities') }}" class="row g-2 align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="search" class="form-control" placeholder="Search opportunity, customer, code..." value="{{ search }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="stage" class="form-select form-select-sm">
+                        <option value="">-- All Stages --</option>
+                        {% for st in stages %}
+                            <option value="{{ st }}" {% if stage == st %}selected{% endif %}>{{ st }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">-- All Statuses --</option>
+                        {% for st, lbl in statuses %}
+                            <option value="{{ st }}" {% if status == st %}selected{% endif %}>{{ lbl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-1 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fa-solid fa-filter"></i></button>
+                    <a href="{{ url_for('opportunities.list_opportunities') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Opportunities Table -->
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Opportunity</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Probability</th>
+                        <th>Weighted Value</th>
+                        <th>Stage</th>
+                        <th>Exp. Close Date</th>
+                        <th>Owner</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if opportunities_page.items %}
+                        {% for o in opportunities_page.items %}
+                            <tr>
+                                <td><span class="badge bg-light text-dark border font-monospace">{{ o.opportunity_code }}</span></td>
+                                <td>
+                                    <a href="{{ url_for('opportunities.details', opportunity_id=o.id) }}" class="fw-semibold text-primary text-decoration-none">
+                                        {{ o.opportunity_name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if o.customer %}
+                                        <a href="{{ url_for('customers.details', customer_id=o.customer.id) }}" class="text-secondary text-decoration-none">
+                                            {{ o.customer.customer_name }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold text-dark">${{ "{:,.2f}".format(o.amount) }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px; width: 50px;">
+                                            <div class="progress-bar {% if o.probability >= 80 %}bg-success{% elif o.probability >= 50 %}bg-info{% else %}bg-warning{% endif %}" style="width: {{ o.probability }}%;"></div>
+                                        </div>
+                                        <span class="small fw-semibold">{{ o.probability }}%</span>
+                                    </div>
+                                </td>
+                                <td class="fw-semibold text-success">${{ "{:,.2f}".format(o.weighted_amount) }}</td>
+                                <td>
+                                    {% if o.stage == 'Won' %}<span class="badge bg-success">Won</span>
+                                    {% elif o.stage == 'Lost' %}<span class="badge bg-danger">Lost</span>
+                                    {% elif o.stage == 'Negotiation' %}<span class="badge bg-primary">Negotiation</span>
+                                    {% elif o.stage == 'Proposal' %}<span class="badge bg-info">Proposal</span>
+                                    {% else %}<span class="badge bg-secondary">Qualification</span>{% endif %}
+                                </td>
+                                <td class="small text-muted">{{ o.expected_close_date.strftime('%b %d, %Y') if o.expected_close_date else '' }}</td>
+                                <td>{{ o.assigned_to.name if o.assigned_to else '<span class="text-muted fst-italic">Unassigned</span>'|safe }}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('opportunities.details', opportunity_id=o.id) }}" class="btn btn-light" title="View Details"><i class="fa-regular fa-eye"></i></a>
+                                        <a href="{{ url_for('opportunities.edit', opportunity_id=o.id) }}" class="btn btn-light" title="Edit"><i class="fa-regular fa-pen-to-square"></i></a>
+                                        <button type="button" class="btn btn-light text-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-action="{{ url_for('opportunities.delete', opportunity_id=o.id) }}" data-name="{{ o.opportunity_name }} ({{ o.opportunity_code }})" title="Delete">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-handshake-slash fs-2 mb-2 text-secondary"></i>
+                                <p class="mb-0">No opportunities found matching your criteria.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if opportunities_page.pages > 1 %}
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+            <span class="small text-muted">Showing page {{ opportunities_page.page }} of {{ opportunities_page.pages }} ({{ opportunities_page.total }} total)</span>
+            <nav>
+                <ul class="pagination pagination-sm m-0">
+                    <li class="page-item {% if not opportunities_page.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('opportunities.list_opportunities', page=opportunities_page.prev_num, search=search, stage=stage, status=status) }}">Previous</a>
+                    </li>
+                    {% for p in opportunities_page.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if p %}
+                            <li class="page-item {% if p == opportunities_page.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('opportunities.list_opportunities', page=p, search=search, stage=stage, status=status) }}">{{ p }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    <li class="page-item {% if not opportunities_page.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('opportunities.list_opportunities', page=opportunities_page.next_num, search=search, stage=stage, status=status) }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

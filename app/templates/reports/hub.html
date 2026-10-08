@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Reports & Analytics Hub{% endblock %}
+{% block header_title %}Reports & Analytics Hub{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="mb-4">
+        <h4 class="fw-bold mb-1">CRM Reporting Hub</h4>
+        <p class="text-muted small mb-0">Generate comprehensive reports, exports, pipeline forecasting and performance insights</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- 1. Customer Report -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="kpi-icon bg-primary-subtle text-primary"><i class="fa-solid fa-users"></i></div>
+                        <h5 class="fw-bold m-0">Customer Master Report</h5>
+                    </div>
+                    <p class="small text-muted mb-4">Complete directory of all registered customer organizations, owners, status, and registration timeline.</p>
+                    <a href="{{ url_for('reports.customers_report') }}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fa-solid fa-table me-1"></i> View Report & CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Lead Report -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="kpi-icon bg-info-subtle text-info"><i class="fa-solid fa-bullseye"></i></div>
+                        <h5 class="fw-bold m-0">Lead Generation Report</h5>
+                    </div>
+                    <p class="small text-muted mb-4">Lead source breakdown, qualification ratios, conversion statuses and prospect valuation.</p>
+                    <a href="{{ url_for('reports.leads_report') }}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fa-solid fa-table me-1"></i> View Report & CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Opportunity Report -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="kpi-icon bg-success-subtle text-success"><i class="fa-solid fa-handshake"></i></div>
+                        <h5 class="fw-bold m-0">Opportunity Report</h5>
+                    </div>
+                    <p class="small text-muted mb-4">Detailed deal-by-deal breakdown with amounts, win probabilities, weighted values and closing dates.</p>
+                    <a href="{{ url_for('reports.opportunities_report') }}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fa-solid fa-table me-1"></i> View Report & CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Pipeline Report -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="kpi-icon bg-warning-subtle text-warning"><i class="fa-solid fa-chart-column"></i></div>
+                        <h5 class="fw-bold m-0">Pipeline Stage & Owner Report</h5>
+                    </div>
+                    <p class="small text-muted mb-4">Stage-wise and sales rep-wise pipeline totals, weighted deal values and forecasted revenue.</p>
+                    <a href="{{ url_for('reports.pipeline_report') }}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fa-solid fa-table me-1"></i> View Report & CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Follow-Up Activity Report -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="kpi-icon bg-danger-subtle text-danger"><i class="fa-solid fa-calendar-check"></i></div>
+                        <h5 class="fw-bold m-0">Follow-Up Execution Report</h5>
+                    </div>
+                    <p class="small text-muted mb-4">Planned, completed, missed, and overdue client follow-up touchpoint activities.</p>
+                    <a href="{{ url_for('reports.followups_report') }}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fa-solid fa-table me-1"></i> View Report & CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Sales Conversion Report -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="kpi-icon bg-primary-subtle text-primary"><i class="fa-solid fa-repeat"></i></div>
+                        <h5 class="fw-bold m-0">Lead-to-Customer Conversion</h5>
+                    </div>
+                    <p class="small text-muted mb-4">Lead conversion rates, channel win rates, and marketing channel ROI.</p>
+                    <a href="{{ url_for('reports.conversion_report') }}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fa-solid fa-table me-1"></i> View Report & CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if current_user.is_admin or current_user.is_manager %}
+        <!-- 7. User Activity Report -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="kpi-icon bg-dark-subtle text-dark"><i class="fa-solid fa-user-check"></i></div>
+                        <h5 class="fw-bold m-0">User Performance & Activity</h5>
+                    </div>
+                    <p class="small text-muted mb-4">Activity volume, deals closed, customer assignments and follow-up completion by rep.</p>
+                    <a href="{{ url_for('reports.user_activity_report') }}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fa-solid fa-table me-1"></i> View Report & CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

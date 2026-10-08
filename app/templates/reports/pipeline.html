@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Pipeline Stage & Owner Report{% endblock %}
+{% block header_title %}Reports & Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">Pipeline Stage & Owner Breakdown</h4>
+            <p class="text-muted small mb-0">Aggregate financial analysis grouped by pipeline stages and individual account owners</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('reports.pipeline_report', export='csv') }}" class="btn btn-outline-success btn-sm">
+                <i class="fa-solid fa-file-csv me-1"></i> Export Stage CSV
+            </a>
+            <a href="{{ url_for('reports.hub') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Hub
+            </a>
+        </div>
+    </div>
+
+    <!-- 1. Stage-wise Breakdown Table -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white fw-bold">
+            <i class="fa-solid fa-chart-column me-2 text-primary"></i> Stage-Wise Pipeline Valuation
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Pipeline Stage</th>
+                        <th>Active Deals</th>
+                        <th>Total Value ($)</th>
+                        <th>Weighted Value ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stage, val in data['by_stage'].items() %}
+                        <tr>
+                            <td><span class="badge bg-light text-dark border">{{ stage }}</span></td>
+                            <td class="fw-semibold">{{ val['count'] }}</td>
+                            <td class="fw-bold text-dark">${{ "{:,.2f}".format(val['total_amount']) }}</td>
+                            <td class="fw-bold text-success">${{ "{:,.2f}".format(val['weighted_amount']) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 2. Owner-wise Breakdown Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white fw-bold">
+            <i class="fa-solid fa-user-group me-2 text-primary"></i> Owner-Wise Deal Pipeline
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Sales Executive</th>
+                        <th>Total Deals</th>
+                        <th>Pipeline Value ($)</th>
+                        <th>Won Closed Revenue ($)</th>
+                        <th>Weighted Pipeline ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for owner, val in data['by_owner'].items() %}
+                        <tr>
+                            <td class="fw-semibold">{{ owner }}</td>
+                            <td>{{ val['count'] }}</td>
+                            <td class="fw-bold">${{ "{:,.2f}".format(val['total_amount']) }}</td>
+                            <td class="fw-bold text-success">${{ "{:,.2f}".format(val['won_amount']) }}</td>
+                            <td class="fw-bold text-primary">${{ "{:,.2f}".format(val['weighted_amount']) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

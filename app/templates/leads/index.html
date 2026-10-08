@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Lead Pipeline{% endblock %}
+{% block header_title %}Lead Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header & Action Button -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="fw-bold mb-0">Leads</h4>
+            <p class="text-muted small mb-0">Capture, track, qualify prospective buyers, and convert to customers</p>
+        </div>
+        <a href="{{ url_for('leads.create') }}" class="btn btn-primary shadow-sm">
+            <i class="fa-solid fa-plus me-1"></i> New Lead
+        </a>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-body p-3">
+            <form method="GET" action="{{ url_for('leads.list_leads') }}" class="row g-2 align-items-center">
+                <div class="col-md-3">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="search" class="form-control" placeholder="Search name, company, email..." value="{{ search }}">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">-- All Statuses --</option>
+                        {% for st in statuses %}
+                            <option value="{{ st }}" {% if status == st %}selected{% endif %}>{{ st }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="priority" class="form-select form-select-sm">
+                        <option value="">-- All Priorities --</option>
+                        {% for pr, lbl in priorities %}
+                            <option value="{{ pr }}" {% if priority == pr %}selected{% endif %}>{{ lbl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="source" class="form-select form-select-sm">
+                        <option value="">-- All Sources --</option>
+                        {% for src, lbl in sources %}
+                            <option value="{{ src }}" {% if source == src %}selected{% endif %}>{{ lbl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if current_user.is_admin or current_user.is_manager %}
+                <div class="col-md-2">
+                    <select name="assigned_to_id" class="form-select form-select-sm">
+                        <option value="0">-- All Owners --</option>
+                        {% for u in sales_users %}
+                            <option value="{{ u.id }}" {% if assigned_to_id == u.id %}selected{% endif %}>{{ u.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="col-md-1 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fa-solid fa-filter"></i></button>
+                    <a href="{{ url_for('leads.list_leads') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leads Table -->
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Lead Name</th>
+                        <th>Company</th>
+                        <th>Contact</th>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Exp. Value</th>
+                        <th>Assigned To</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if leads_page.items %}
+                        {% for l in leads_page.items %}
+                            <tr>
+                                <td><span class="badge bg-light text-dark border font-monospace">{{ l.lead_code }}</span></td>
+                                <td>
+                                    <a href="{{ url_for('leads.details', lead_id=l.id) }}" class="fw-semibold text-primary text-decoration-none">
+                                        {{ l.lead_name }}
+                                    </a>
+                                </td>
+                                <td>{{ l.company_name }}</td>
+                                <td>
+                                    <div class="small"><i class="fa-regular fa-envelope me-1 text-muted"></i>{{ l.email }}</div>
+                                    <div class="small text-muted"><i class="fa-solid fa-phone me-1"></i>{{ l.phone }}</div>
+                                </td>
+                                <td><span class="badge bg-light text-dark border">{{ l.source }}</span></td>
+                                <td>
+                                    {% if l.status == 'New' %}<span class="badge bg-primary">New</span>
+                                    {% elif l.status == 'Contacted' %}<span class="badge bg-info">Contacted</span>
+                                    {% elif l.status == 'Qualified' %}<span class="badge bg-success">Qualified</span>
+                                    {% elif l.status == 'Converted' %}<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check me-1"></i>Converted</span>
+                                    {% elif l.status == 'Lost' %}<span class="badge bg-danger">Lost</span>
+                                    {% else %}<span class="badge bg-secondary">{{ l.status }}</span>{% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge {% if l.priority == 'High' %}bg-danger-subtle text-danger{% elif l.priority == 'Medium' %}bg-warning-subtle text-warning{% else %}bg-light text-secondary border{% endif %}">
+                                        {{ l.priority }}
+                                    </span>
+                                </td>
+                                <td class="fw-bold">${{ "{:,.0f}".format(l.expected_value) }}</td>
+                                <td>{{ l.assigned_to.name if l.assigned_to else '<span class="text-muted fst-italic">Unassigned</span>'|safe }}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('leads.details', lead_id=l.id) }}" class="btn btn-light" title="View Details"><i class="fa-regular fa-eye"></i></a>
+                                        <a href="{{ url_for('leads.edit', lead_id=l.id) }}" class="btn btn-light" title="Edit"><i class="fa-regular fa-pen-to-square"></i></a>
+                                        <button type="button" class="btn btn-light text-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-action="{{ url_for('leads.delete', lead_id=l.id) }}" data-name="{{ l.lead_name }} ({{ l.lead_code }})" title="Delete">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-bullseye fs-2 mb-2 text-secondary"></i>
+                                <p class="mb-0">No leads found matching your criteria.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if leads_page.pages > 1 %}
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+            <span class="small text-muted">Showing page {{ leads_page.page }} of {{ leads_page.pages }} ({{ leads_page.total }} total)</span>
+            <nav>
+                <ul class="pagination pagination-sm m-0">
+                    <li class="page-item {% if not leads_page.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('leads.list_leads', page=leads_page.prev_num, search=search, status=status, priority=priority, source=source, assigned_to_id=assigned_to_id) }}">Previous</a>
+                    </li>
+                    {% for p in leads_page.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if p %}
+                            <li class="page-item {% if p == leads_page.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('leads.list_leads', page=p, search=search, status=status, priority=priority, source=source, assigned_to_id=assigned_to_id) }}">{{ p }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    <li class="page-item {% if not leads_page.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('leads.list_leads', page=leads_page.next_num, search=search, status=status, priority=priority, source=source, assigned_to_id=assigned_to_id) }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

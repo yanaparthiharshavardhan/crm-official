@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+{% block title %}Executive Dashboard{% endblock %}
+{% block header_title %}Executive Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header Controls & Date Filters -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h4 class="fw-bold mb-1">Welcome, {{ current_user.name }}</h4>
+            <p class="text-muted small mb-0">
+                Scope: <span class="fw-semibold text-dark">
+                    {% if current_user.is_admin %}Global Enterprise Scope{% elif current_user.is_manager %}Team Pipeline Scope{% else %}Assigned Portfolio Scope{% endif %}
+                </span>
+            </p>
+        </div>
+
+        <!-- Date Range Filter Buttons -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="btn-group shadow-sm" role="group">
+                <a href="{{ url_for('dashboard.index', filter='all') }}" class="btn btn-sm {% if date_filter == 'all' or not date_filter %}btn-primary{% else %}btn-outline-secondary bg-white{% endif %}">All Time</a>
+                <a href="{{ url_for('dashboard.index', filter='today') }}" class="btn btn-sm {% if date_filter == 'today' %}btn-primary{% else %}btn-outline-secondary bg-white{% endif %}">Today</a>
+                <a href="{{ url_for('dashboard.index', filter='week') }}" class="btn btn-sm {% if date_filter == 'week' %}btn-primary{% else %}btn-outline-secondary bg-white{% endif %}">This Week</a>
+                <a href="{{ url_for('dashboard.index', filter='month') }}" class="btn btn-sm {% if date_filter == 'month' %}btn-primary{% else %}btn-outline-secondary bg-white{% endif %}">This Month</a>
+            </div>
+
+            <!-- Custom Date Range Dropdown -->
+            <button class="btn btn-outline-secondary bg-white btn-sm shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fa-solid fa-calendar me-1"></i> Custom Range
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg" style="width: 280px;">
+                <form method="GET" action="{{ url_for('dashboard.index') }}">
+                    <input type="hidden" name="filter" value="custom">
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Start Date</label>
+                        <input type="date" name="start_date" class="form-control form-control-sm" value="{{ custom_start or '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">End Date</label>
+                        <input type="date" name="end_date" class="form-control form-control-sm" value="{{ custom_end or '' }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">Apply Filter</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Summary Cards Row 1 -->
+    <div class="row g-3 mb-4">
+        <!-- Customers -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card kpi-card h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Total Customers</div>
+                        <h3 class="fw-bold my-1">{{ kpis.total_customers }}</h3>
+                        <a href="{{ url_for('customers.list_customers') }}" class="text-primary small text-decoration-none">View Customers <i class="fa-solid fa-arrow-right ms-1"></i></a>
+                    </div>
+                    <div class="kpi-icon bg-primary-subtle text-primary">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leads & Open Leads -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card kpi-card h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Total Leads</div>
+                        <h3 class="fw-bold my-1">{{ kpis.total_leads }}</h3>
+                        <div class="small text-success"><i class="fa-solid fa-bolt me-1"></i>{{ kpis.open_leads }} Open Leads</div>
+                    </div>
+                    <div class="kpi-icon bg-info-subtle text-info">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Opportunities & Pipeline -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card kpi-card h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Active Pipeline</div>
+                        <h3 class="fw-bold my-1">${{ "{:,.0f}".format(kpis.pipeline_value) }}</h3>
+                        <div class="small text-muted">Weighted: <strong class="text-dark">${{ "{:,.0f}".format(kpis.weighted_pipeline_value) }}</strong></div>
+                    </div>
+                    <div class="kpi-icon bg-success-subtle text-success">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Won vs Lost Opps -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card kpi-card h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Won Deals</div>
+                        <h3 class="fw-bold my-1 text-success">{{ kpis.won_opportunities }}</h3>
+                        <div class="small text-muted">Value: <strong>${{ "{:,.0f}".format(kpis.won_value) }}</strong> | Lost: <span class="text-danger">{{ kpis.lost_opportunities }}</span></div>
+                    </div>
+                    <div class="kpi-icon bg-warning-subtle text-warning">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Visualizations Section -->
+    <div class="row g-3 mb-4">
+        <!-- Opportunity Pipeline Bar Chart -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"><i class="fa-solid fa-chart-column me-2 text-primary"></i> Opportunity Pipeline by Stage</span>
+                    <a href="{{ url_for('opportunities.list_opportunities', view='pipeline') }}" class="btn btn-outline-primary btn-sm">Kanban Pipeline</a>
+                </div>
+                <div class="card-body">
+                    <div style="height: 280px;">
+                        <canvas id="pipelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lead Status Doughnut Chart -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fa-solid fa-chart-pie me-2 text-primary"></i> Lead Status Breakdown
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <div style="height: 260px; width: 100%;">
+                        <canvas id="leadStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Sales Revenue Trend Line Chart -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fa-solid fa-chart-line me-2 text-primary"></i> Monthly Sales & Pipeline Trend
+                </div>
+                <div class="card-body">
+                    <div style="height: 260px;">
+                        <canvas id="salesTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Pending / Overdue Follow-ups & Recent Activities Feed -->
+    <div class="row g-3">
+        <!-- Upcoming & Overdue Follow-ups -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> Upcoming & Pending Follow-Ups</span>
+                    <a href="{{ url_for('followups.create') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus me-1"></i> Schedule</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if upcoming_followups %}
+                        <div class="list-group list-group-flush">
+                            {% for fu in upcoming_followups %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <div class="fw-semibold">{{ fu.subject }}</div>
+                                        <div class="small text-muted">
+                                            <span class="badge bg-secondary me-1">{{ fu.followup_type }}</span>
+                                            {{ fu.related_entity_display }}
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="small fw-semibold {% if fu.is_overdue %}text-danger{% else %}text-muted{% endif %}">
+                                            <i class="fa-regular fa-calendar me-1"></i> {{ fu.followup_date.strftime('%b %d, %Y') }}
+                                        </div>
+                                        {% if fu.is_overdue %}
+                                            <span class="badge bg-danger">Overdue</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">Planned</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            <i class="fa-solid fa-calendar-check fs-2 mb-2 text-secondary"></i>
+                            <p class="mb-0 small">No pending follow-ups scheduled.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('followups.list_followups') }}" class="small text-decoration-none">View All Follow-Ups &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities Feed -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"><i class="fa-solid fa-list-check me-2 text-primary"></i> Recent Logged Activities</span>
+                    <a href="{{ url_for('activities.create') }}" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-plus me-1"></i> Log Activity</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_activities %}
+                        <div class="list-group list-group-flush">
+                            {% for act in recent_activities %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle p-2 bg-light border text-primary">
+                                            {% if act.activity_type == 'Call' %}<i class="fa-solid fa-phone"></i>
+                                            {% elif act.activity_type == 'Meeting' %}<i class="fa-solid fa-handshake"></i>
+                                            {% elif act.activity_type == 'Email' %}<i class="fa-solid fa-envelope"></i>
+                                            {% else %}<i class="fa-solid fa-list-check"></i>{% endif %}
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">{{ act.subject }}</div>
+                                            <div class="small text-muted">{{ act.description or 'No extra notes' }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="small text-muted">{{ act.activity_date.strftime('%b %d, %Y') }}</div>
+                                        <span class="badge bg-success-subtle text-success">{{ act.status }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            <i class="fa-solid fa-inbox fs-2 mb-2 text-secondary"></i>
+                            <p class="mb-0 small">No recent activities found.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('activities.list_activities') }}" class="small text-decoration-none">View All Activities &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const chartData = {{ chart_data_json|safe }};
+
+    // 1. Pipeline Stages Bar Chart
+    const ctxPipeline = document.getElementById('pipelineChart').getContext('2d');
+    new Chart(ctxPipeline, {
+        type: 'bar',
+        data: {
+            labels: chartData.pipeline_chart.labels,
+            datasets: [{
+                label: 'Pipeline Value ($)',
+                data: chartData.pipeline_chart.amounts,
+                backgroundColor: chartData.pipeline_chart.backgroundColor,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Value: $' + Number(context.raw).toLocaleString();
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) { return '$' + Number(value).toLocaleString(); }
+                    }
+                }
+            }
+        }
+    });
+
+    // 2. Lead Status Doughnut Chart
+    const ctxLead = document.getElementById('leadStatusChart').getContext('2d');
+    new Chart(ctxLead, {
+        type: 'doughnut',
+        data: {
+            labels: chartData.lead_chart.labels,
+            datasets: [{
+                data: chartData.lead_chart.data,
+                backgroundColor: chartData.lead_chart.backgroundColor,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+            }
+        }
+    });
+
+    // 3. Monthly Sales Trend Line Chart
+    const ctxSales = document.getElementById('salesTrendChart').getContext('2d');
+    new Chart(ctxSales, {
+        type: 'line',
+        data: {
+            labels: chartData.sales_trend_chart.labels,
+            datasets: [
+                {
+                    label: 'Won Revenue ($)',
+                    data: chartData.sales_trend_chart.won,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Open Pipeline Target ($)',
+                    data: chartData.sales_trend_chart.pipeline,
+                    borderColor: '#3b82f6',
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': $' + Number(context.raw).toLocaleString();
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) { return '$' + Number(value).toLocaleString(); }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

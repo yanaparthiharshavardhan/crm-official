@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block header_title %}Opportunity Management{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="m-0 fw-bold"><i class="fa-solid fa-handshake me-2 text-primary"></i> {{ title }}</h5>
+                <a href="{{ url_for('opportunities.list_opportunities') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left me-1"></i> Back to List</a>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="opportunity_name" class="form-label fw-semibold small">Opportunity Name <span class="text-danger">*</span></label>
+                            {{ form.opportunity_name(class="form-control" + (" is-invalid" if form.opportunity_name.errors else ""), placeholder="e.g. Cloud Infrastructure Migration", required=True) }}
+                            {% if form.opportunity_name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.opportunity_name.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="customer_id" class="form-label fw-semibold small">Customer Account <span class="text-danger">*</span></label>
+                            {{ form.customer_id(class="form-select" + (" is-invalid" if form.customer_id.errors else ""), required=True) }}
+                            {% if form.customer_id.errors %}
+                                <div class="invalid-feedback d-block">{{ form.customer_id.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="amount" class="form-label fw-semibold small">Deal Amount ($) <span class="text-danger">*</span></label>
+                            {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), placeholder="e.g. 75000", required=True) }}
+                            <div class="form-text text-muted" style="font-size: 0.75rem;">Must be greater than 0.</div>
+                            {% if form.amount.errors %}
+                                <div class="invalid-feedback d-block">{{ form.amount.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="stage" class="form-label fw-semibold small">Pipeline Stage <span class="text-danger">*</span></label>
+                            {{ form.stage(class="form-select") }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="probability" class="form-label fw-semibold small">Probability (%) <span class="text-danger">*</span></label>
+                            {{ form.probability(class="form-control" + (" is-invalid" if form.probability.errors else ""), min=0, max=100, required=True) }}
+                            <div class="form-text text-muted" style="font-size: 0.75rem;">0 to 100 inclusive.</div>
+                            {% if form.probability.errors %}
+                                <div class="invalid-feedback d-block">{{ form.probability.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="expected_close_date" class="form-label fw-semibold small">Expected Close Date <span class="text-danger">*</span></label>
+                            {{ form.expected_close_date(class="form-control" + (" is-invalid" if form.expected_close_date.errors else ""), required=True) }}
+                            <div class="form-text text-muted" style="font-size: 0.75rem;">Cannot be in the past for active deals.</div>
+                            {% if form.expected_close_date.errors %}
+                                <div class="invalid-feedback d-block">{{ form.expected_close_date.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="source" class="form-label fw-semibold small">Opportunity Source</label>
+                            {{ form.source(class="form-control", placeholder="e.g. Referral, Website, Inbound") }}
+                        </div>
+
+                        {% if current_user.is_admin or current_user.is_manager %}
+                        <div class="col-md-6">
+                            <label for="assigned_to_id" class="form-label fw-semibold small">Assigned Sales Executive</label>
+                            {{ form.assigned_to_id(class="form-select") }}
+                        </div>
+                        {% endif %}
+
+                        <div class="col-12">
+                            <label for="notes" class="form-label fw-semibold small">Opportunity Notes & Strategy</label>
+                            {{ form.notes(class="form-control", rows=3, placeholder="Deal terms, key decision makers, proposal notes...") }}
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('opportunities.list_opportunities') }}" class="btn btn-light">Cancel</a>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i> Save Opportunity</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

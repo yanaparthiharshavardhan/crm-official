@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Lead Generation Report{% endblock %}
+{% block header_title %}Reports & Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="fw-bold mb-0">Lead Generation & Conversion Report</h4>
+            <p class="text-muted small mb-0">Analysis of lead acquisition sources, qualification status and conversion rates</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('reports.leads_report', status=status, source=source, export='csv') }}" class="btn btn-outline-success btn-sm">
+                <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+            </a>
+            <a href="{{ url_for('reports.hub') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Hub
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card p-3 shadow-sm border-0">
+                <div class="text-muted small fw-semibold text-uppercase">Total Leads Captured</div>
+                <h3 class="fw-bold my-1 text-primary">{{ total_leads }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 shadow-sm border-0">
+                <div class="text-muted small fw-semibold text-uppercase">Converted to Customers</div>
+                <h3 class="fw-bold my-1 text-success">{{ converted_leads }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 shadow-sm border-0">
+                <div class="text-muted small fw-semibold text-uppercase">Conversion Rate</div>
+                <h3 class="fw-bold my-1 text-dark">{{ conv_rate }}%</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Lead Name</th>
+                        <th>Company</th>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Exp. Value</th>
+                        <th>Assigned Rep</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in leads %}
+                        <tr>
+                            <td><span class="badge bg-light text-dark border font-monospace">{{ l.lead_code }}</span></td>
+                            <td class="fw-semibold">{{ l.lead_name }}</td>
+                            <td>{{ l.company_name }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ l.source }}</span></td>
+                            <td>
+                                <span class="badge {% if l.status == 'Converted' %}bg-success{% elif l.status == 'Lost' %}bg-danger{% else %}bg-primary{% endif %}">
+                                    {{ l.status }}
+                                </span>
+                            </td>
+                            <td>{{ l.priority }}</td>
+                            <td class="fw-bold">${{ "{:,.2f}".format(l.expected_value) }}</td>
+                            <td>{{ l.assigned_to.name if l.assigned_to else 'Unassigned' }}</td>
+                            <td class="small text-muted">{{ l.created_date.strftime('%b %d, %Y') if l.created_date else '' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

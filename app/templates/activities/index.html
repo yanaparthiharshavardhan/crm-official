@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Activity Logs{% endblock %}
+{% block header_title %}Activity Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="fw-bold mb-0">Sales Activities</h4>
+            <p class="text-muted small mb-0">Record and track calls, meetings, emails, and client tasks</p>
+        </div>
+        <a href="{{ url_for('activities.create') }}" class="btn btn-primary shadow-sm">
+            <i class="fa-solid fa-plus me-1"></i> Log Activity
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-body p-3">
+            <form method="GET" action="{{ url_for('activities.list_activities') }}" class="row g-2 align-items-center">
+                <div class="col-md-3">
+                    <select name="type" class="form-select form-select-sm">
+                        <option value="">-- All Activity Types --</option>
+                        {% for tp, lbl in types %}
+                            <option value="{{ tp }}" {% if activity_type == tp %}selected{% endif %}>{{ lbl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">-- All Statuses --</option>
+                        {% for st, lbl in statuses %}
+                            <option value="{{ st }}" {% if status == st %}selected{% endif %}>{{ lbl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="date" class="form-control form-control-sm" value="{{ date_val }}">
+                </div>
+                <div class="col-md-3 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="fa-solid fa-filter me-1"></i> Filter</button>
+                    <a href="{{ url_for('activities.list_activities') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Activities Table -->
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Subject</th>
+                        <th>Date</th>
+                        <th>Related Entity</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if activities_page.items %}
+                        {% for act in activities_page.items %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        {% if act.activity_type == 'Call' %}<i class="fa-solid fa-phone me-1"></i>
+                                        {% elif act.activity_type == 'Meeting' %}<i class="fa-solid fa-handshake me-1"></i>
+                                        {% elif act.activity_type == 'Email' %}<i class="fa-solid fa-envelope me-1"></i>
+                                        {% else %}<i class="fa-solid fa-list-check me-1"></i>{% endif %}
+                                        {{ act.activity_type }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ act.subject }}</div>
+                                    {% if act.description %}
+                                        <div class="small text-muted">{{ act.description }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ act.activity_date.strftime('%b %d, %Y') if act.activity_date else '' }}</td>
+                                <td>
+                                    {% if act.customer %}
+                                        <span class="small"><i class="fa-regular fa-building me-1 text-muted"></i>{{ act.customer.customer_name }}</span>
+                                    {% elif act.lead %}
+                                        <span class="small"><i class="fa-solid fa-bullseye me-1 text-muted"></i>{{ act.lead.lead_name }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">General</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge {% if act.status == 'Completed' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                        {{ act.status }}
+                                    </span>
+                                </td>
+                                <td>{{ act.assigned_to.name if act.assigned_to else 'Unassigned' }}</td>
+                                <td class="text-end">
+                                    <form method="POST" action="{{ url_for('activities.delete', activity_id=act.id) }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-light btn-sm text-danger" title="Delete" onclick="return confirm('Delete this activity entry?');">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-list-check fs-2 mb-2 text-secondary"></i>
+                                <p class="mb-0">No activities logged yet.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if activities_page.pages > 1 %}
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+            <span class="small text-muted">Page {{ activities_page.page }} of {{ activities_page.pages }}</span>
+            <nav>
+                <ul class="pagination pagination-sm m-0">
+                    <li class="page-item {% if not activities_page.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('activities.list_activities', page=activities_page.prev_num) }}">Previous</a>
+                    </li>
+                    <li class="page-item {% if not activities_page.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('activities.list_activities', page=activities_page.next_num) }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

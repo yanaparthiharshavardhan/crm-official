@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}{{ lead.lead_name }} - Details{% endblock %}
+{% block header_title %}Lead Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Action Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{{ url_for('leads.list_leads') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left"></i></a>
+            <div>
+                <h4 class="fw-bold mb-0">{{ lead.lead_name }}</h4>
+                <div class="small text-muted">
+                    <span class="badge bg-light text-dark border font-monospace me-2">{{ lead.lead_code }}</span>
+                    <span>{{ lead.company_name }}</span> &bull; 
+                    <span class="badge {% if lead.status == 'Converted' %}bg-success{% elif lead.status == 'Lost' %}bg-danger{% else %}bg-primary{% endif %}">{{ lead.status }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            {% if lead.status != 'Converted' %}
+                <button type="button" class="btn btn-success btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#convertLeadModal">
+                    <i class="fa-solid fa-repeat me-1"></i> Convert to Customer
+                </button>
+            {% else %}
+                {% if lead.converted_customer_id %}
+                    <a href="{{ url_for('customers.details', customer_id=lead.converted_customer_id) }}" class="btn btn-outline-success btn-sm">
+                        <i class="fa-solid fa-building-user me-1"></i> View Converted Customer
+                    </a>
+                {% endif %}
+            {% endif %}
+            <a href="{{ url_for('followups.create', lead_id=lead.id) }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-calendar-plus me-1"></i> Schedule Follow-Up</a>
+            <a href="{{ url_for('activities.create', lead_id=lead.id) }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-list-check me-1"></i> Log Activity</a>
+            <a href="{{ url_for('leads.edit', lead_id=lead.id) }}" class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square me-1"></i> Edit</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Lead Information Column -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fa-solid fa-address-card me-2 text-primary"></i> Lead Overview
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Email:</span>
+                            <span class="fw-semibold"><a href="mailto:{{ lead.email }}" class="text-decoration-none">{{ lead.email }}</a></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Phone:</span>
+                            <span class="fw-semibold">{{ lead.phone }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Company:</span>
+                            <span class="fw-semibold">{{ lead.company_name }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Source:</span>
+                            <span class="badge bg-light text-dark border">{{ lead.source }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Priority:</span>
+                            <span class="badge {% if lead.priority == 'High' %}bg-danger-subtle text-danger{% elif lead.priority == 'Medium' %}bg-warning-subtle text-warning{% else %}bg-light text-secondary border{% endif %}">
+                                {{ lead.priority }}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Expected Value:</span>
+                            <span class="fw-bold text-success">${{ "{:,.2f}".format(lead.expected_value) }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Assigned Sales Exec:</span>
+                            <span class="fw-semibold">{{ lead.assigned_to.name if lead.assigned_to else 'Unassigned' }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Created Date:</span>
+                            <span class="fw-semibold">{{ lead.created_date.strftime('%b %d, %Y') if lead.created_date else '' }}</span>
+                        </li>
+                    </ul>
+
+                    {% if lead.notes %}
+                        <div class="mt-3 p-3 bg-light rounded border">
+                            <div class="fw-semibold small text-secondary mb-1">Notes:</div>
+                            <div class="small text-muted">{{ lead.notes }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Follow-ups and Activities Column -->
+        <div class="col-lg-8">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white fw-bold">
+                            <i class="fa-solid fa-calendar-check me-2 text-primary"></i> Follow-Ups ({{ lead.followups|length }})
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                {% if lead.followups %}
+                                    {% for fu in lead.followups %}
+                                        <li class="list-group-item p-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="fw-semibold small">{{ fu.subject }}</div>
+                                                <span class="badge {% if fu.status == 'Completed' %}bg-success{% elif fu.is_overdue %}bg-danger{% else %}bg-secondary{% endif %}">{{ fu.status }}</span>
+                                            </div>
+                                            <div class="small text-muted mt-1">
+                                                <i class="fa-regular fa-calendar me-1"></i> {{ fu.followup_date.strftime('%b %d, %Y') }} &bull; {{ fu.followup_type }}
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="list-group-item text-center py-3 text-muted small">No follow-ups recorded.</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white fw-bold">
+                            <i class="fa-solid fa-list-check me-2 text-primary"></i> Activities ({{ lead.activities|length }})
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                {% if lead.activities %}
+                                    {% for act in lead.activities %}
+                                        <li class="list-group-item p-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="fw-semibold small">{{ act.subject }}</div>
+                                                <span class="badge bg-light text-dark border">{{ act.activity_type }}</span>
+                                            </div>
+                                            <div class="small text-muted mt-1">{{ act.description or 'No notes' }}</div>
+                                        </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="list-group-item text-center py-3 text-muted small">No activities logged.</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Convert Lead Modal -->
+<div class="modal fade" id="convertLeadModal" tabindex="-1" aria-labelledby="convertLeadModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="convertLeadModalLabel"><i class="fa-solid fa-repeat me-2"></i> Convert Lead to Customer</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url_for('leads.convert', lead_id=lead.id) }}" class="needs-validation" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="modal-body">
+            <p class="small text-muted">Converting this lead will create a new permanent <strong>Customer</strong> account for <strong>{{ lead.company_name }}</strong> and optionally launch an initial <strong>Sales Opportunity</strong>.</p>
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold small">Opportunity Name (Optional)</label>
+                <input type="text" name="opportunity_name" class="form-control form-control-sm" placeholder="e.g. Enterprise License Deal" value="{{ lead.company_name }} - Initial Deal">
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Opportunity Amount ($)</label>
+                    <input type="number" step="0.01" min="0.01" name="amount" class="form-control form-control-sm" value="{{ lead.expected_value or 1000 }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Expected Close Date</label>
+                    <input type="date" name="expected_close_date" class="form-control form-control-sm" value="{{ now.strftime('%Y-%m-%d') }}">
+                </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-check me-1"></i> Complete Conversion</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

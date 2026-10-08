@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Pipeline Kanban View{% endblock %}
+{% block header_title %}Pipeline Kanban View{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">Sales Pipeline Board</h4>
+            <p class="text-muted small mb-0">Drag and monitor opportunities across each qualification stage</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('opportunities.list_opportunities', view='table') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-table-list me-1"></i> Table View
+            </a>
+            <a href="{{ url_for('opportunities.create') }}" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus me-1"></i> New Deal
+            </a>
+        </div>
+    </div>
+
+    <!-- Kanban Stages Columns -->
+    <div class="row g-3 flex-nowrap overflow-auto pb-4" style="min-height: 600px;">
+        {% for st in stages %}
+            <div class="col-12 col-md-4 col-xl-2" style="min-width: 250px;">
+                <div class="card h-100 bg-light border-0 shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="fw-bold small">{{ st }}</span>
+                        <span class="badge bg-secondary rounded-pill">{{ stage_map[st]|length }}</span>
+                    </div>
+                    <div class="card-body p-2 d-flex flex-column gap-2" style="max-height: 70vh; overflow-y: auto;">
+                        {% if stage_map[st] %}
+                            {% for opp in stage_map[st] %}
+                                <div class="card p-3 shadow-xs border-0 bg-white">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.65rem;">{{ opp.opportunity_code }}</span>
+                                        <span class="small fw-semibold text-muted">{{ opp.probability }}%</span>
+                                    </div>
+                                    <a href="{{ url_for('opportunities.details', opportunity_id=opp.id) }}" class="fw-semibold text-dark text-decoration-none small mb-1">
+                                        {{ opp.opportunity_name }}
+                                    </a>
+                                    <div class="small text-muted mb-2">{{ opp.customer.customer_name if opp.customer else 'No Customer' }}</div>
+                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                        <span class="fw-bold text-primary small">${{ "{:,.0f}".format(opp.amount) }}</span>
+                                        <span class="small text-muted" style="font-size: 0.7rem;"><i class="fa-regular fa-calendar me-1"></i>{{ opp.expected_close_date.strftime('%b %d') if opp.expected_close_date else '' }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4 text-muted small">No deals in this stage</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+

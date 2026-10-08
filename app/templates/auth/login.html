@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Sign In{% endblock %}
+
+{% block auth_content %}
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <h4 class="card-title fw-bold text-center mb-1">Account Login</h4>
+        <p class="text-muted text-center small mb-4">Enter your credentials to access the CRM portal</p>
+
+        <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}" class="needs-validation" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                <label for="email" class="form-label fw-semibold small">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fa-solid fa-envelope text-secondary"></i></span>
+                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="name@company.com", required=True) }}
+                </div>
+                {% if form.email.errors %}
+                    <div class="invalid-feedback d-block">{{ form.email.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <label for="password" class="form-label fw-semibold small">Password</label>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-secondary"></i></span>
+                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter password", required=True) }}
+                </div>
+                {% if form.password.errors %}
+                    <div class="invalid-feedback d-block">{{ form.password.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-check mb-3">
+                {{ form.remember_me(class="form-check-input") }}
+                <label class="form-check-label small text-muted" for="remember_me">
+                    Keep me signed in on this device
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">
+                <i class="fa-solid fa-right-to-bracket me-2"></i> Sign In
+            </button>
+        </form>
+
+        <div class="mt-4 pt-3 border-top text-center">
+            <p class="small text-muted mb-1">New user? <a href="{{ url_for('auth.register') }}" class="text-primary text-decoration-none fw-semibold">Create an account</a></p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3 bg-light border-0 shadow-sm">
+    <div class="card-body p-3">
+        <h6 class="fw-bold mb-2 small text-secondary"><i class="fa-solid fa-key me-1"></i> Quick Test Credentials:</h6>
+        <div class="d-flex flex-column gap-1 small text-muted">
+            <div><span class="badge badge-role-admin">Admin</span> <code>admin@acxiom.com</code> / <code>Admin@123</code></div>
+            <div><span class="badge badge-role-manager">Manager</span> <code>manager@acxiom.com</code> / <code>Manager@123</code></div>
+            <div><span class="badge badge-role-sales">Sales Executive</span> <code>sales1@acxiom.com</code> / <code>Sales@123</code></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

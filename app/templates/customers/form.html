@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block header_title %}Customer Management{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="m-0 fw-bold"><i class="fa-solid fa-building-user me-2 text-primary"></i> {{ title }}</h5>
+                <a href="{{ url_for('customers.list_customers') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left me-1"></i> Back to List</a>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="customer_name" class="form-label fw-semibold small">Customer / Contact Name <span class="text-danger">*</span></label>
+                            {{ form.customer_name(class="form-control" + (" is-invalid" if form.customer_name.errors else ""), placeholder="e.g. Acme Innovations Corp", required=True) }}
+                            {% if form.customer_name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.customer_name.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="company_name" class="form-label fw-semibold small">Company Name <span class="text-danger">*</span></label>
+                            {{ form.company_name(class="form-control" + (" is-invalid" if form.company_name.errors else ""), placeholder="e.g. Acme Inc.", required=True) }}
+                            {% if form.company_name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.company_name.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="email" class="form-label fw-semibold small">Email Address <span class="text-danger">*</span></label>
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="contact@acme.com", required=True) }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">{{ form.email.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label fw-semibold small">Phone Number <span class="text-danger">*</span></label>
+                            {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""), placeholder="e.g. 9876543210", required=True) }}
+                            <div class="form-text text-muted" style="font-size: 0.75rem;">10 to 15 digits numeric.</div>
+                            {% if form.phone.errors %}
+                                <div class="invalid-feedback d-block">{{ form.phone.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="address" class="form-label fw-semibold small">Street Address</label>
+                            {{ form.address(class="form-control", placeholder="Suite, Street Address") }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="city" class="form-label fw-semibold small">City</label>
+                            {{ form.city(class="form-control", placeholder="City") }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="state" class="form-label fw-semibold small">State / Province</label>
+                            {{ form.state(class="form-control", placeholder="State") }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="status" class="form-label fw-semibold small">Account Status</label>
+                            {{ form.status(class="form-select") }}
+                        </div>
+
+                        {% if current_user.is_admin or current_user.is_manager %}
+                        <div class="col-md-6">
+                            <label for="owner_id" class="form-label fw-semibold small">Assigned Sales Executive</label>
+                            {{ form.owner_id(class="form-select") }}
+                        </div>
+                        {% endif %}
+
+                        <div class="col-12">
+                            <label for="notes" class="form-label fw-semibold small">Customer Notes & Requirements</label>
+                            {{ form.notes(class="form-control", rows=3, placeholder="Additional details about the client relationship...") }}
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('customers.list_customers') }}" class="btn btn-light">Cancel</a>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i> Save Customer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}{{ opportunity.opportunity_name }} - Details{% endblock %}
+{% block header_title %}Opportunity Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Action Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{{ url_for('opportunities.list_opportunities') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left"></i></a>
+            <div>
+                <h4 class="fw-bold mb-0">{{ opportunity.opportunity_name }}</h4>
+                <div class="small text-muted">
+                    <span class="badge bg-light text-dark border font-monospace me-2">{{ opportunity.opportunity_code }}</span>
+                    {% if opportunity.customer %}
+                        <a href="{{ url_for('customers.details', customer_id=opportunity.customer.id) }}" class="text-primary text-decoration-none">{{ opportunity.customer.customer_name }}</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('followups.create', opportunity_id=opportunity.id) }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-calendar-plus me-1"></i> Schedule Follow-Up</a>
+            <a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}" class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square me-1"></i> Edit Opportunity</a>
+        </div>
+    </div>
+
+    <!-- Pipeline Stage Progress Stepper -->
+    <div class="card shadow-sm border-0 mb-4 p-3 bg-white">
+        <div class="fw-semibold small text-muted mb-2 text-uppercase">Sales Pipeline Progress</div>
+        <div class="stage-stepper">
+            {% for st in stages %}
+                <div class="stage-step {% if opportunity.stage == st %}active{% elif (opportunity.stage == 'Won' and st != 'Lost') or (opportunity.stage == 'Negotiation' and st in ['Qualification', 'Proposal']) or (opportunity.stage == 'Proposal' and st == 'Qualification') %}completed{% endif %}">
+                    {% if opportunity.stage == st %}<i class="fa-solid fa-location-dot me-1"></i>{% endif %}
+                    {{ st }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Quick Stage Advance Form -->
+        <div class="mt-3 pt-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span class="small text-muted">Update stage directly:</span>
+            <form method="POST" action="{{ url_for('opportunities.update_stage', opportunity_id=opportunity.id) }}" class="d-flex gap-2 m-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="stage" class="form-select form-select-sm" style="width: 180px;">
+                    {% for st in stages %}
+                        <option value="{{ st }}" {% if opportunity.stage == st %}selected{% endif %}>{{ st }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-outline-primary btn-sm">Update Stage</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Key Deal Financials & Attributes -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fa-solid fa-money-check-dollar me-2 text-primary"></i> Deal Financials
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 p-3 bg-light rounded text-center">
+                        <div class="text-muted small text-uppercase fw-semibold">Deal Amount</div>
+                        <h2 class="fw-bold text-primary mb-1">${{ "{:,.2f}".format(opportunity.amount) }}</h2>
+                        <div class="small text-muted">Weighted Pipeline: <strong class="text-success">${{ "{:,.2f}".format(opportunity.weighted_amount) }}</strong></div>
+                    </div>
+
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Win Probability:</span>
+                            <span class="fw-bold">{{ opportunity.probability }}%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Expected Close Date:</span>
+                            <span class="fw-semibold">{{ opportunity.expected_close_date.strftime('%b %d, %Y') if opportunity.expected_close_date else '' }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Deal Status:</span>
+                            <span class="badge {% if opportunity.status == 'Won' %}bg-success{% elif opportunity.status == 'Lost' %}bg-danger{% else %}bg-primary{% endif %}">
+                                {{ opportunity.status }}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Lead Source:</span>
+                            <span class="fw-semibold">{{ opportunity.source or 'Direct / Inbound' }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Assigned Sales Executive:</span>
+                            <span class="fw-semibold">{{ opportunity.assigned_to.name if opportunity.assigned_to else 'Unassigned' }}</span>
+                        </li>
+                    </ul>
+
+                    {% if opportunity.notes %}
+                        <div class="mt-3 p-3 bg-light rounded border">
+                            <div class="fw-semibold small text-secondary mb-1">Opportunity Notes:</div>
+                            <div class="small text-muted">{{ opportunity.notes }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Follow-Ups List -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"><i class="fa-solid fa-calendar-check me-2 text-primary"></i> Scheduled Follow-Ups ({{ opportunity.followups|length }})</span>
+                    <a href="{{ url_for('followups.create', opportunity_id=opportunity.id) }}" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-plus me-1"></i> Add</a>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% if opportunity.followups %}
+                            {% for fu in opportunity.followups %}
+                                <li class="list-group-item p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold">{{ fu.subject }}</div>
+                                            <div class="small text-muted">
+                                                <i class="fa-regular fa-calendar me-1"></i> {{ fu.followup_date.strftime('%b %d, %Y') }} &bull; 
+                                                <span class="badge bg-light text-dark border">{{ fu.followup_type }}</span>
+                                            </div>
+                                        </div>
+                                        <span class="badge {% if fu.status == 'Completed' %}bg-success{% elif fu.is_overdue %}bg-danger{% else %}bg-secondary{% endif %}">{{ fu.status }}</span>
+                                    </div>
+                                    {% if fu.remarks %}
+                                        <div class="small text-muted mt-2 p-2 bg-light rounded">{{ fu.remarks }}</div>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item text-center py-4 text-muted small">No follow-ups recorded for this deal.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

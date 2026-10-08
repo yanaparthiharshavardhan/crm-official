@@ -1,0 +1,194 @@
+:root {
+  --sidebar-width: 260px;
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary-color: #475569;
+  --dark-sidebar: #0f172a;
+  --sidebar-hover: #1e293b;
+  --sidebar-active: #3b82f6;
+  --bg-light: #f8fafc;
+  --card-border: #e2e8f0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-light);
+  color: #1e293b;
+  overflow-x: hidden;
+}
+
+/* Sidebar Styling */
+#sidebar-wrapper {
+  min-height: 100vh;
+  width: var(--sidebar-width);
+  background-color: var(--dark-sidebar);
+  color: #cbd5e1;
+  transition: all 0.3s ease;
+  position: fixed;
+  z-index: 1030;
+}
+
+#sidebar-wrapper .sidebar-brand {
+  padding: 1.25rem 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+#sidebar-wrapper .nav-item {
+  margin: 0.2rem 0.75rem;
+}
+
+#sidebar-wrapper .nav-link {
+  color: #94a3b8;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s;
+}
+
+#sidebar-wrapper .nav-link:hover {
+  color: #fff;
+  background-color: var(--sidebar-hover);
+}
+
+#sidebar-wrapper .nav-link.active {
+  color: #fff;
+  background-color: var(--sidebar-active);
+}
+
+#sidebar-wrapper .sidebar-heading {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #64748b;
+  padding: 1.25rem 1.5rem 0.5rem;
+  font-weight: 700;
+}
+
+/* Page Content */
+#page-content-wrapper {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.top-navbar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--card-border);
+  padding: 0.75rem 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}
+
+.main-content {
+  flex: 1;
+  padding: 1.75rem;
+}
+
+/* Card Styling */
+.card {
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  background-color: #ffffff;
+}
+
+.card-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--card-border);
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+}
+
+/* KPI Cards */
+.kpi-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+/* Badges */
+.badge-role-admin { background-color: #dc2626; color: white; }
+.badge-role-manager { background-color: #7c3aed; color: white; }
+.badge-role-sales { background-color: #2563eb; color: white; }
+
+/* Tables */
+.table thead th {
+  background-color: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Pipeline Stage Stepper */
+.stage-stepper {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.stage-step {
+  flex: 1;
+  padding: 0.75rem;
+  text-align: center;
+  border-radius: 0.5rem;
+  background: #f1f5f9;
+  font-weight: 600;
+  font-size: 0.85rem;
+  position: relative;
+}
+
+.stage-step.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.stage-step.completed {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  #sidebar-wrapper {
+    margin-left: calc(-1 * var(--sidebar-width));
+  }
+  #sidebar-wrapper.toggled {
+    margin-left: 0;
+  }
+  #page-content-wrapper {
+    margin-left: 0;
+  }
+}
+
